@@ -195,6 +195,9 @@ use self::darwin::fill as fill_impl;
 #[cfg(any(target_os = "fuchsia"))]
 use self::fuchsia::fill as fill_impl;
 
+#[cfg(target_os = "optee")]
+use self::optee::fill as fill_impl;
+
 #[cfg(any(target_os = "android", target_os = "linux"))]
 mod sysrand_chunk {
     use crate::{c, error};
@@ -429,5 +432,17 @@ mod fuchsia {
     #[link(name = "zircon")]
     extern "C" {
         fn zx_cprng_draw(buffer: *mut u8, length: usize);
+    }
+}
+
+#[cfg(target_os = "optee")]
+mod optee {
+    use crate::error;
+    use optee_utee::Random;
+
+    pub fn fill(dest: &mut [u8]) -> Result<(), error::Unspecified> {
+        Random::generate(dest);
+
+        Ok(())
     }
 }
